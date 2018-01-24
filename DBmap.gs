@@ -1,8 +1,7 @@
 function myFunction() {
-  //Browser.msgBox("Hello World");
   getTableList();
   //onEdit(1);
-  
+
 }
 
 /* フォームに指定されたシート名と画面名に一致するテーブル一覧を取得する */
@@ -12,7 +11,7 @@ function getTableList() {
      2. シートのオブジェクトを取得
      3. セル範囲を指定したオブジェクトを取得
      4. オブジェクトの内容を取得・変更
-     
+
      作業フロー(関数等実装時の引数定義時に考慮する項目)
      1. どのシートから値取得
      　　　> シート名または、ID、アクティブシートのどこから値取得が必要か?
@@ -22,7 +21,7 @@ function getTableList() {
      　　　> どの範囲?
      4. どの行から表示?
      5. どの列から表示?
-     6. 1~5が決まったら、定義した要件に基づき作成する     
+     6. 1~5が決まったら、定義した要件に基づき作成する
   */
   var spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
   // 2の手順。シート名を指定せず、現在開いている(スクリプトを実行している)シートを取得
@@ -43,16 +42,16 @@ function getTableList() {
   var screenNameSelector;
   if (sheetName == "入出力一覧_フロント") {
     screenNameSelector = activeSheet.getRange("A3");
-     
+
     /* 画面マスターからのシート値取得(フロント)*/
     relativeAdminSheet = spreadsheet.getSheetByName(getAdminMasterSheetName);
-    var relativeAdminScreenRow = getRowForValueName(relativeAdminSheet, 1, "画面");    
+    var relativeAdminScreenRow = getRowForValueName(relativeAdminSheet, 1, "画面");
     var inputAdminRow  = getRowForValueName(relativeAdminSheet, 1, "入力");
     var outputAdminRow = getRowForValueName(relativeAdminSheet, 1, "出力");
     var tableAdminRow = getRowForValueName(relativeAdminSheet, 1, "テーブル名");
   } else if (sheetName == "入出力一覧_管理画面") {
     screenNameSelector = activeSheet.getRange("B3");
-     
+
      /* マスターシートからの値取得(フロント)*/
      relativeFrontSheet = spreadsheet.getSheetByName(getFrontMasterSheetName);
      var relativeFrontScreenRow = getRowForValueName(relativeFrontSheet, 1, "画面");
@@ -63,12 +62,12 @@ function getTableList() {
     return Browser.msgBox("Error");
   }
   var screenName = screenNameSelector.getValue();
-  
+
   // 2の手順。シート名を指定して、シートを取得
   var dataSheet = spreadsheet.getSheetByName(sheetName);
   //var relativeDataSheet = spreadsheet.getSheetByName(relativeSheetName);
   /* 1行目で「画面」となっている列を取得 */
-  var screenRow = getRowForValueName(dataSheet, 1, "画面"); 
+  var screenRow = getRowForValueName(dataSheet, 1, "画面");
   /* 「画面」列の中から、画面名が記載されている行を取得 */
   var screenColumn = getColumnForValueName(dataSheet, screenRow, screenName);
   /* 上記画面名と違う画面名が現れる行を取得 */
@@ -80,7 +79,7 @@ function getTableList() {
   /* 1行目で「出力」となっている列を取得 */
   var outputRow = getRowForValueName(dataSheet, 1, "出力");
   /* 表示を一回削除する */
-  clearValues(activeSheet);  
+  clearValues(activeSheet);
   /* アクティブシートにdataSheetの内容を書き込む */
   var defaultDisplayPosition = 10;
   setDataSheetValues(activeSheet, dataSheet, screenColumn, tableRow, anotherScreenColumn, 2, defaultDisplayPosition);
@@ -113,12 +112,12 @@ function getTableList() {
     tableIndexs[tableName] = indexs;
   }
   // 選択画面のテーブルが入力と出力のどちらに丸が付いているか判断するためのアルゴリズム
-  /* 
+  /*
     1.選択画面の「出力列(outputRow)」にある値を取得(getValues())し、出力一覧の配列を作成する。
     2.選択したテーブルと、対応するテーブルの出力に〇が付いている相関図を作成する。
     3.「1」で作成した出力一覧で「〇」が付いていたら、対応するテーブルの入力に〇が付いている相関図を作成する。
     */
-  
+
   // 相関図を作成するアルゴリズム
   /*
     1.「入力or出力ー入力」「入力ー出力」の相関関係があるか判断する
@@ -145,10 +144,10 @@ function getTableList() {
   var relativeFrontTableInputValue;
   var activedCellSheet = activeSheet.getActiveCell().getColumn();
   var color = "#FFFF00";
- 
+
   /*登録・参照の関係性表示*/
   setRelation(activeSheet, defaultDisplayPosition, outputListDisplayPosition, inAndOutputListDisplayPosition);
-  
+
   for(var i=0;i<isInputValues.length;i++){
     var tableName = tablesNames[i][0];
     var inputDisplayRow = 5;
@@ -162,79 +161,79 @@ function getTableList() {
       // 対応するテーブルの「入力」に〇がついているか確認する
       relativeTableInputValue = dataSheet.getRange(indexs[allTableIndex], inputRow).getValue();
       //relativeAnotherTableInputValue = relativeDataSheet.getRange(indexs[allTableIndex], inputAnotherRow).getValue();
-      if(relativeAdminSheet) {      
-         relativeAdminTableInputValue = relativeAdminSheet.getRange(indexs[allTableIndex], inputAdminRow).getValue();        
-      } else if(relativeFrontSheet){      
+      if(relativeAdminSheet) {
+         relativeAdminTableInputValue = relativeAdminSheet.getRange(indexs[allTableIndex], inputAdminRow).getValue();
+      } else if(relativeFrontSheet){
          relativeFrontTableInputValue = relativeFrontSheet.getRange(indexs[allTableIndex], inputFrontRow).getValue();
       }
-      
-      
-     // if (relativeTableInputValue === "〇" && relativeAnotherTableInputValue === "〇") 
+
+
+     // if (relativeTableInputValue === "〇" && relativeAnotherTableInputValue === "〇")
       if (relativeTableInputValue === "〇") {
         // 「入力or出力ー出力」の相関関係がある場合の処理
-        setDataSheetValues(activeSheet, dataSheet, indexs[allTableIndex], screenRow, indexs[allTableIndex]+1, inputDisplayRow++, defaultDisplayPosition + i);        
+        setDataSheetValues(activeSheet, dataSheet, indexs[allTableIndex], screenRow, indexs[allTableIndex]+1, inputDisplayRow++, defaultDisplayPosition + i);
         //選択値がフロント側か管理画面側か
-        if (relativeAdminTableInputValue=== "〇") {
+        if (relativeAdminTableInputValue === "〇") {
           var setColorAdmin = setDataSheetValues(activeSheet, relativeAdminSheet, indexs[allTableIndex], relativeAdminScreenRow, indexs[allTableIndex]+1, inputDisplayRow++, defaultDisplayPosition + i);
     Logger.log(setColorAdmin);
           for (var colorColumn =5; colorColumn<inputDisplayRow; colorColumn++){
             var range =activeSheet.getRange(defaultDisplayPosition +i,colorColumn,1,activedCellSheet);
-              
+
               range.setBackground(color);
           }
-        } else if(relativeFrontTableInputValue=== "〇") {
+        } else if(relativeFrontTableInputValue === "〇") {
           setDataSheetValues(activeSheet, relativeFrontSheet, indexs[allTableIndex], relativeFrontScreenRow, indexs[allTableIndex]+1, inputDisplayRow++, defaultDisplayPosition + i);
-        }        
+        }
       }
-      
+
       if (isInputValues[i][0] === "〇") {
         isInputDisplayFlg = true;
         // 選択テーブル(出力)と、対応するテーブル(入力)の相関図作成
-        relativeTableOutputValue = dataSheet.getRange(indexs[allTableIndex], outputRow).getValue(); 
-         if(relativeAdminSheet) {      
+        relativeTableOutputValue = dataSheet.getRange(indexs[allTableIndex], outputRow).getValue();
+         if(relativeAdminSheet) {
            relativeAdminTableOutputValue = relativeAdminSheet.getRange(indexs[allTableIndex], outputAdminRow).getValue();
-         } else if(relativeFrontSheet){      
+         } else if(relativeFrontSheet){
            relativeFrontTableOutputValue = relativeFrontSheet.getRange(indexs[allTableIndex], outputFrontRow).getValue();
          }
-        
+
         if (relativeTableOutputValue === "〇") {
           // 「出力ー入力」の相関関係がある場合の処理
           setDataSheetValues(activeSheet, dataSheet, indexs[allTableIndex], screenRow, indexs[allTableIndex]+1, outputDisplayRow++, outputListDisplayPosition + i);
           //setDataSheetValues(activeSheet, relativeDataSheet, indexs[allTableIndex], relativeScreenRow, indexs[allTableIndex]+1, outputDisplayRow++, outputListDisplayPosition + i);
-          
-          if (relativeAdminTableOutputValue=== "〇") {          
-            setDataSheetValues(activeSheet, relativeAdminSheet, indexs[allTableIndex], relativeAdminScreenRow, indexs[allTableIndex]+1, outputDisplayRow++, outputListDisplayPosition + i); 
-          } else if(relativeFrontTableOutputValue=== "〇") {
-            setDataSheetValues(activeSheet, relativeFrontSheet, indexs[allTableIndex], relativeFrontScreenRow, indexs[allTableIndex]+1, outputDisplayRow++, outputListDisplayPosition + i);      
-          }       
-          
-        } 
+
+          if (relativeAdminTableOutputValue === "〇") {
+            setDataSheetValues(activeSheet, relativeAdminSheet, indexs[allTableIndex], relativeAdminScreenRow, indexs[allTableIndex]+1, outputDisplayRow++, outputListDisplayPosition + i);
+          } else if(relativeFrontTableOutputValue === "〇") {
+            setDataSheetValues(activeSheet, relativeFrontSheet, indexs[allTableIndex], relativeFrontScreenRow, indexs[allTableIndex]+1, outputDisplayRow++, outputListDisplayPosition + i);
+          }
+
+        }
       }
       if (isInputValues[i][0] === "〇" && isOutputValues[i][0] !== "〇") {
-        // 「参照 + 登録」の場合の処理 
+        // 「参照 + 登録」の場合の処理
         isOutputDisplayFlg = true;
         relativeTableOutputValue = dataSheet.getRange(indexs[allTableIndex], outputRow).getValue();
-        if(relativeAdminSheet) {      
+        if(relativeAdminSheet) {
            relativeAdminTableOutputValue = relativeAdminSheet.getRange(indexs[allTableIndex], outputAdminRow).getValue();
-         } else if(relativeFrontSheet){      
+         } else if(relativeFrontSheet){
            relativeFrontTableOutputValue = relativeFrontSheet.getRange(indexs[allTableIndex], outputFrontRow).getValue();
-         }        
+         }
         if (relativeTableOutputValue === "〇") {
           setDataSheetValues(activeSheet, dataSheet, indexs[allTableIndex], screenRow, indexs[allTableIndex]+1, inAndOutputDisplayRow++, inAndOutputListDisplayPosition + i);
           //setDataSheetValues(activeSheet, relativeDataSheet, indexs[allTableIndex], relativeScreenRow, indexs[allTableIndex]+1, inAndOutputDisplayRow++, inAndOutputListDisplayPosition + i);
-           if (relativeAdminTableOutputValue=== "〇") {          
-            setDataSheetValues(activeSheet, relativeAdminSheet, indexs[allTableIndex], relativeAdminScreenRow, indexs[allTableIndex]+1, inAndOutputDisplayRow++, inAndOutputListDisplayPosition + i); 
-          } else if(relativeFrontTableOutputValue=== "〇") {
-            setDataSheetValues(activeSheet, relativeFrontSheet, indexs[allTableIndex], relativeFrontScreenRow, indexs[allTableIndex]+1, inAndOutputDisplayRow++, inAndOutputListDisplayPosition + i);      
+           if (relativeAdminTableOutputValue === "〇") {
+            setDataSheetValues(activeSheet, relativeAdminSheet, indexs[allTableIndex], relativeAdminScreenRow, indexs[allTableIndex]+1, inAndOutputDisplayRow++, inAndOutputListDisplayPosition + i);
+          } else if(relativeFrontTableOutputValue === "〇") {
+            setDataSheetValues(activeSheet, relativeFrontSheet, indexs[allTableIndex], relativeFrontScreenRow, indexs[allTableIndex]+1, inAndOutputDisplayRow++, inAndOutputListDisplayPosition + i);
           }
-          
-          
+
+
         }
       }
     }
   }
-     
-  
+
+
   if (isInputDisplayFlg) {
     // 出力一覧を表示していた場合、対応するテーブル一覧も表示する
     setDataSheetValues(activeSheet, dataSheet, screenColumn, tableRow, anotherScreenColumn, 2, outputListDisplayPosition);
@@ -244,12 +243,12 @@ function getTableList() {
   if (isOutputDisplayFlg) {
     setDataSheetValues(activeSheet, dataSheet, screenColumn, tableRow, anotherScreenColumn, 2, inAndOutputListDisplayPosition);
     setDataSheetValues(activeSheet, dataSheet, screenColumn, inputRow, anotherScreenColumn, 3, inAndOutputListDisplayPosition);
-    setDataSheetValues(activeSheet, dataSheet, screenColumn, outputRow, anotherScreenColumn, 4, inAndOutputListDisplayPosition); 
+    setDataSheetValues(activeSheet, dataSheet, screenColumn, outputRow, anotherScreenColumn, 4, inAndOutputListDisplayPosition);
   }
 }
 
 /* 特定の行に存在する値が、どの列にあるか取得する */
-function getRowForValueName (sheet, column, valueName) {  
+function getRowForValueName (sheet, column, valueName) {
   // column行の1列目のセル ~ 同じcolumn行(1)の最終列目のセルの範囲を捜索対象とする
   var searchRow = sheet.getRange(column, 1, 1, sheet.getLastColumn()).getValues();
   for(var i=1;i<searchRow[column-1].length;i++){
@@ -261,7 +260,7 @@ function getRowForValueName (sheet, column, valueName) {
 }
 
 /* 特定の列に存在する値が、どの行にあるか取得する */
-function getColumnForValueName (sheet, row, valueName) {  
+function getColumnForValueName (sheet, row, valueName) {
   // 1行目のrowのセル ~ 最終行目のrowのセルの範囲を捜索対象とする
   var searchRow = sheet.getRange(1, row, sheet.getLastRow()).getValues();
   for(var i=1;i<searchRow.length;i++){
@@ -273,12 +272,12 @@ function getColumnForValueName (sheet, row, valueName) {
 }
 
 /* 特定の列にある特定の値が、別の値に変化する行を取得する */
-function getLastColumnForValueName (sheet, column, row, valueName) {  
+function getLastColumnForValueName (sheet, column, row, valueName) {
   // 1行目のrowのセル ~ 最終行目のrowのセルの範囲を捜索対象とする
   var searchRow = sheet.getRange(1, row, sheet.getLastRow()).getValues();
   // 最初に見つかった行数から検索を開始し、同じ名前がどこまで続くかを判断する
   for(var i=column;i<searchRow.length;i++){
-    if(searchRow[i-1][0] !== valueName){   
+    if(searchRow[i-1][0] !== valueName){
       return i;
     }
   }
@@ -299,7 +298,7 @@ function clearValues(activeSheet){
       activeSheet.getRange("B3").clear();
       break;
   }
-  
+
 }
 
 function setDataSheetValues(activeSheet, dataSheet,screenColumn, tableRow, anotherScreenColumn, insertRow, insertColumn){
@@ -307,15 +306,15 @@ function setDataSheetValues(activeSheet, dataSheet,screenColumn, tableRow, anoth
   for(var i=0;i<tablesNames.length;i++){
     // 現在のシートの「insertRow列のinsertColumn行目」から書き込みを開始
     activeSheet.getRange(insertColumn+i, insertRow).setValue(tablesNames[i][0]);
-  }   
+  }
 }
 /* 登録・参照の関係を表示する */
 function setRelation (sheet, def, out, inAndOut, inAndIn) {
   // 使用する名称を格納
-  var arrName = ["登録-登録","登録ー参照","参照ー登録","入力ー入力"];  
+  var arrName = ["登録-登録","登録ー参照","参照ー登録","入力ー入力"];
   if (def) {
       sheet.getRange(def, 1).setValue(arrName[0]);
-  } 
+  }
   if (out) {
       sheet.getRange(out, 1).setValue(arrName[1]);
   }
@@ -324,14 +323,14 @@ function setRelation (sheet, def, out, inAndOut, inAndIn) {
   }
 //  if (inAndIn) {
 //      sheet.getRange(inAndIn, 1).setValue(arrName[3]);
-//  }  
-  
-  
+//  }
+
+
 //  var arrName = [
 //                 ["登録-登録","登録ー参照","参照ー登録"],
 //                 ["def","out","inAndOut"]
 //                ];
-   
+
 //  for (var i=0; i<arrName[0].length; i++) {
 //  //Logger.getLog(arrName[0]);
 //    if (arrName[1][i]=== "def"){
@@ -339,11 +338,11 @@ function setRelation (sheet, def, out, inAndOut, inAndIn) {
 //    }
 //    if (arrName[1][i]=== "out") {
 //      sheet.getRange(out, 1).setValue(arrName[0][i]);
-//    
+//
 //    }
 //    if (arrName[1][i] === "inAndOut") {
 //      sheet.getRange(inAndOut, 1).setValue(arrName[0][i]);
-//    }    
+//    }
 //  }
 
 
@@ -355,7 +354,7 @@ function onEdit(e){
    r2.setValue("Edited: " + r1.getA1Notation() + ", value = " + r1.getValue());
    var color = "#FFFF00";
    var getColor = r2.setBackground(color);
-   var colorWhite = "#FFFFFF"; 
+   var colorWhite = "#FFFFFF";
    var turnColorFlg = 0;
-   
+
 }
